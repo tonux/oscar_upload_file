@@ -18,17 +18,20 @@ const upload = async (req, res) => {
       extension: req.file.mimetype,
     });
   } catch (err) {
-    console.log(err);
+    if (!res.headersSent) {
 
-    if (err.code == "LIMIT_FILE_SIZE") {
-      return res.status(500).send({
-        message: "File size cannot be larger than 2MB!",
+      console.log(err);
+
+      if (err.code == "LIMIT_FILE_SIZE") {
+        return res.status(500).send({
+          message: "File size cannot be larger than XMB!",
+        });
+      }
+
+      res.status(500).send({
+        message: `Could not upload the file: ${req.file.originalname}. ${err}`,
       });
     }
-
-    res.status(500).send({
-      message: `Could not upload the file: ${req.file.originalname}. ${err}`,
-    });
   }
 };
 
@@ -37,9 +40,11 @@ const getListFiles = (req, res) => {
 
   fs.readdir(directoryPath, function (err, files) {
     if (err) {
-      res.status(500).send({
-        message: "Unable to scan files!",
-      });
+      if (!res.headersSent) {
+        res.status(500).send({
+          message: "Unable to scan files!",
+        });
+      }
     }
 
     let fileInfos = [];
@@ -61,9 +66,11 @@ const download = (req, res) => {
 
   res.download(directoryPath + fileName, fileName, (err) => {
     if (err) {
-      res.status(500).send({
-        message: "Could not download the file. " + err,
-      });
+      if (!res.headersSent) {
+        res.status(500).send({
+          message: "Could not download the file. " + err,
+        });
+      }
     }
   });
 };
